@@ -1,0 +1,61 @@
+apiVersion: apps.gitlab.com/v1beta1
+kind: GitLab
+metadata:
+  name: gitlab
+  namespace: gitlab-gov
+spec:
+  chart:
+    version: "8.0.0"
+    values:
+      global:
+        nodeSelector:
+          gitlab: "true"
+        hosts:
+          domain: savis.vn
+          hostSuffix: gov
+        ingress:
+          configureCertmanager: true
+        edition: ce
+        gitlabVersion: "17.0.0"
+        appConfig:
+          omniauth:
+            enabled: true
+            allowSingleSignOn: ["saml", "google_oauth2", "atlassian_oauth2"]
+          ldap:
+            perventSignIn: false
+            enabled: true
+            servers:
+              main:
+                label: "LDAP"
+                host: "10.0.97.53"
+                port: 389
+                uid: "sAMAccountName"
+                verify_certificates: false
+                # bind_dn: "administrator@savis.local"
+                bind_dn: "CN=Administrator,CN=Users,DC=savis,DC=local"
+                password:
+                  secret: ldap-main-password
+                  key: password
+                base: "dc=savis,dc=local"
+                encryption: "plain"
+                active_directory: true
+                user_filter: "(memberOf=CN=gitlab,OU=gitlab,OU=Groups,DC=savis,DC=local)"
+                sync_ssh_keys: false
+                group_base: "CN=gitlab,OU=gitlab,OU=Groups,DC=savis,DC=local"
+                user_dn: "ou=Savis-Savycom-User,dc=savis,dc=local"
+                sync_name: true
+
+      certmanager-issuer:
+        email: hoangvytb7891@gmail.com
+      gitaly:
+        replicas: 2
+        #minio:
+        #  replicas: 2
+      postgresql:
+        install: true
+      prometheus:
+        install: false
+      redis:
+        replicas: 2
+      runner:
+        install: true
